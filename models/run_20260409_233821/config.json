@@ -1,0 +1,20 @@
+{
+  "backbone": "v2",
+  "batch_size": 32,
+  "epochs": 50,
+  "learning_rate": 0.001,
+  "nav_hidden": [
+    128,
+    64
+  ],
+  "obs_hidden": [
+    64
+  ],
+  "nav_dropout": 0.3,
+  "obs_dropout": 0.2,
+  "input_shape": [
+    224,
+    224,
+    3
+  ]
+}

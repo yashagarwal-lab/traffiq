@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data files (too large for git)
+data/raw/
+data/synthetic/
+data/processed/
+data/augmented/
+data/sullychen/
+data/labels.csv
+data/train_split.csv
+data/val_split.csv
+
+# Model weights (too large for git)
+models/run_*/best_model.keras
+models/run_*/final_model.keras
+models/run_*/*.tflite
+models/run_*/logs/
+
+# Keep config.json and history.json for reproducibility
+!models/run_*/config.json
+!models/run_*/history.json
+!models/run_*/training_curves.png
+
+# Environment
+miniforge/
+miniforge.sh
+*.egg-info/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.zip
