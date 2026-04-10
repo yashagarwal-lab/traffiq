@@ -7,6 +7,10 @@ import numpy as np
 import tensorflow as tf
 from datetime import datetime
 
+# prevent TF from grabbing all GPU memory at once
+for gpu in tf.config.list_physical_devices('GPU'):
+    tf.config.experimental.set_memory_growth(gpu, True)
+
 from src.model.traffiq_model import build_traffiq_model
 from src.data.dataset import split_dataset
 from src.training import config

@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 
 # data (too large)
-data/
+/data/
 models/run_*/
 
 # env

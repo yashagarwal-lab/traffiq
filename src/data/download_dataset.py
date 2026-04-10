@@ -118,12 +118,22 @@ def convert_udacity_sim(data_dir):
         writer.writeheader()
         
         with open(log_path, 'r') as f:
-            for row in csv.reader(f):
+            reader = csv.reader(f)
+            # skip header if present
+            first = next(reader)
+            if first[0].strip().lower() == 'center':
+                pass  # was a header, skip it
+            else:
+                rows_to_process = [first]
+            for row in reader:
                 if len(row) < 7:
                     continue
                 
                 center_img = row[0].strip()
-                steering = float(row[3].strip())
+                try:
+                    steering = float(row[3].strip())
+                except ValueError:
+                    continue
                 throttle = float(row[4].strip())
                 
                 img_path = center_img
