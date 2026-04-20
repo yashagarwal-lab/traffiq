@@ -226,16 +226,43 @@ class Model(BaseModel):
         mx = int(w * 0.25)
         roi = frame[int(h * 0.15):int(h * 0.85), mx:w - mx]
         hsv = cv2.cvtColor(roi, cv2.COLOR_RGB2HSV)
-        mask = (cv2.inRange(hsv, (0, 40, 60), (180, 255, 220))
-              | cv2.inRange(hsv, (10, 30, 60), (30, 200, 200)))
+
+        # Path 1: coloured box (saturation-based — brown, blue, etc.)
+        mask_color = (cv2.inRange(hsv, (0, 40, 60), (180, 255, 220))
+                    | cv2.inRange(hsv, (10, 30, 60), (30, 200, 200)))
+
+        # Path 2: white box (low saturation, high value on dark floor)
+        # White boxes have S < 40 and V > 160.  The walls are also white,
+        # but walls span the full height of the ROI whereas a box is a
+        # compact blob.  We restrict to the road strip (lower 60% of ROI)
+        # and filter by aspect ratio to reject wall edges.
+        rh_roi, rw_roi = roi.shape[:2]
+        road_y = int(rh_roi * 0.40)
+        road_hsv = hsv[road_y:]
+        mask_white_road = cv2.inRange(road_hsv, (0, 0, 160), (180, 40, 255))
+
+        # Combine both masks (white mask only in road strip region)
+        mask = mask_color.copy()
+        mask[road_y:] |= mask_white_road
+
         k = np.ones((9, 9), np.uint8)
         mask = cv2.morphologyEx(cv2.morphologyEx(mask, cv2.MORPH_OPEN, k), cv2.MORPH_CLOSE, k)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rw = roi.shape[1]
         for c in contours:
-            if cv2.contourArea(c) < self.BOX_MIN_AREA:
+            area = cv2.contourArea(c)
+            if area < self.BOX_MIN_AREA:
                 continue
-            cx = cv2.boundingRect(c)[0] + cv2.boundingRect(c)[2] // 2
+            bx, by, bw, bh = cv2.boundingRect(c)
+            # Reject wall-like strips: walls are very wide and thin or span
+            # the full width.  A box is roughly square-ish (aspect 0.3–3.0)
+            # and doesn't span > 70% of the ROI width.
+            if bw > rw * 0.70:
+                continue
+            aspect = float(bw) / max(bh, 1)
+            if aspect < 0.15 or aspect > 6.0:
+                continue
+            cx = bx + bw // 2
             if cx < rw * 0.35:
                 return "left"
             if cx > rw * 0.65:

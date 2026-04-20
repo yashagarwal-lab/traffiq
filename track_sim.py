@@ -28,9 +28,11 @@ CORRIDOR_2_LEN  = 150     # U-turn horizontal → left(cm)
 CORRIDOR_3_LEN  = 560     # main vertical → down    (cm)
 
 TL_FRAC         = 0.45    # traffic light position on corridor 1
-BOX_FRAC        = 0.25    # box position on corridor 3
+BOX_FRAC        = 0.25    # box position on corridor 3  (coloured box)
+BOX2_FRAC       = 0.50    # box position on corridor 2  (white box)
 STOP_FRAC       = 0.92    # stop sign position on corridor 3
 BOX_LATERAL     = 4       # box offset from centre (cells, +ve = right)
+BOX2_LATERAL    = -4      # white box offset on corridor 2 (-ve = above centre)
 
 TL_RED_DURATION = 20.0    # seconds the light stays red
 CAR_MAX_SPEED   = 18.0    # grid-cells / second at full throttle
@@ -68,6 +70,8 @@ MAP_H     = C3_Y_END + 15
 TL_POS    = (float(C1_X), float(5 + int(TL_FRAC * CORRIDOR_1_LEN / CELL)))
 BOX_POS   = (float(C3_X + BOX_LATERAL),
              float(C2_Y + int(BOX_FRAC * CORRIDOR_3_LEN / CELL)))
+BOX2_POS  = (float(C2_X_ST + int(BOX2_FRAC * CORRIDOR_2_LEN / CELL)),
+             float(C2_Y + BOX2_LATERAL))
 STOP_POS  = (float(C3_X),
              float(C2_Y + int(STOP_FRAC * CORRIDOR_3_LEN / CELL)))
 
@@ -183,7 +187,7 @@ def _render_sprites(frame, cx, cy, ca, tl_state, wall_dists):
             cv2.circle(frame, (sx, sy-r-3), r, (40,15,15), -1)
             cv2.circle(frame, (sx, sy+r+3), r, (20,255,20), -1)
 
-    # Box
+    # Box (coloured — corridor 3)
     sx, d, sc = _project(*BOX_POS, cx, cy, ca)
     if sx is not None and d < 50 and d < wall_dists[_ray(sx)] + 1:
         sz = max(12, int(sc * 0.5))
@@ -192,6 +196,16 @@ def _render_sprites(frame, cx, cy, ca, tl_state, wall_dists):
                       (min(FRAME_W,sx+sz), min(FRAME_H,sy+sz)), (150,120,90), -1)
         cv2.rectangle(frame, (max(0,sx-sz), max(0,sy-sz)),
                       (min(FRAME_W,sx+sz), min(FRAME_H,sy+sz)), (90,70,45), 3)
+
+    # Box 2 (white — corridor 2)
+    sx, d, sc = _project(*BOX2_POS, cx, cy, ca)
+    if sx is not None and d < 50 and d < wall_dists[_ray(sx)] + 1:
+        sz = max(12, int(sc * 0.5))
+        sy = HORIZON + int(sc * 0.15)
+        cv2.rectangle(frame, (max(0,sx-sz), max(0,sy-sz)),
+                      (min(FRAME_W,sx+sz), min(FRAME_H,sy+sz)), (230,230,230), -1)
+        cv2.rectangle(frame, (max(0,sx-sz), max(0,sy-sz)),
+                      (min(FRAME_W,sx+sz), min(FRAME_H,sy+sz)), (180,180,180), 3)
 
     # Stop sign
     sx, d, sc = _project(*STOP_POS, cx, cy, ca)
@@ -261,6 +275,8 @@ def render_minimap(grid, car, tl_state):
     cv2.circle(m, (int(TL_POS[0]*S), int(TL_POS[1]*S)), 5, c, -1)
     cv2.rectangle(m, (int((BOX_POS[0]-2)*S), int((BOX_POS[1]-2)*S)),
                   (int((BOX_POS[0]+2)*S), int((BOX_POS[1]+2)*S)), (90,120,150), -1)
+    cv2.rectangle(m, (int((BOX2_POS[0]-2)*S), int((BOX2_POS[1]-2)*S)),
+                  (int((BOX2_POS[0]+2)*S), int((BOX2_POS[1]+2)*S)), (200,200,200), -1)
     cv2.circle(m, (int(STOP_POS[0]*S), int(STOP_POS[1]*S)), 5, (0,0,210), -1)
 
     # car + heading + FOV
@@ -276,6 +292,7 @@ def render_minimap(grid, car, tl_state):
     f = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(m, "TL",   (int(TL_POS[0]*S)+8,   int(TL_POS[1]*S)+4),   f, 0.35, (0,255,255), 1)
     cv2.putText(m, "BOX",  (int(BOX_POS[0]*S)+8,   int(BOX_POS[1]*S)+4),  f, 0.35, (0,255,255), 1)
+    cv2.putText(m, "WBOX", (int(BOX2_POS[0]*S)+8,  int(BOX2_POS[1]*S)+4), f, 0.35, (200,200,200), 1)
     cv2.putText(m, "STOP", (int(STOP_POS[0]*S)+8,   int(STOP_POS[1]*S)+4), f, 0.35, (0,255,255), 1)
     cv2.putText(m, "START",(int(CAR_START[0]*S),     int(CAR_START[1]*S)-10),f, 0.30, (0,200,200), 1)
     return m

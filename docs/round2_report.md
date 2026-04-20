@@ -19,7 +19,8 @@ The car follows white walls by thresholding to grayscale and computing centring 
 | Red light | HSV red mask + circularity check | Full stop until green |
 | Green light | HSV green mask + circularity check | Resume driving |
 | Stop sign | HSV red mask + polygon vertices (6-12 = octagon) | Permanent stop after 5 frames |
-| Box obstacle | HSV saturation filter on road strip | Slow to 15%, steer ±0.8 away |
+| Box obstacle (coloured) | HSV saturation filter on road strip | Slow to 15%, steer ±0.8 away |
+| Box obstacle (white) | Brightness filter (V>160, S<40) on road strip + aspect-ratio rejection | Slow to 15%, steer ±0.8 away |
 
 ### Performance
 
